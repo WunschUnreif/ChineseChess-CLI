@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+  "chess_model",
+  "chess_client",
+  "chess_server"
+]

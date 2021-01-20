@@ -1,0 +1,11 @@
+[package]
+name = "chess_client"
+version = "0.1.0"
+authors = ["WunschUnreif <wunschunreif@sjtu.edu.cn>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+console = "0.14.0"
+chess_model = { path = "../chess_model" }
