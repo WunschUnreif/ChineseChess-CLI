@@ -4,6 +4,7 @@ use std::net::{SocketAddr, TcpListener};
 use log::{info, error, warn};
 
 use crate::config;
+use chess_datagram::*;
 
 mod sender;
 mod handler;
@@ -13,8 +14,10 @@ pub fn run_server() -> std::io::Result<()> {
 
   for connection in listener.incoming() {
     match connection {
-        Ok(stream) => {
+        Ok(mut stream) => {
           info!("Accepted new connection from {:?}.", stream.peer_addr());
+          DataPacketToClient::error(String::from("Testing")).send(&mut stream)?;
+          info!("Written {}", DataPacketToClient::error(String::from("Testing")).to_string().unwrap());
         }
         Err(_) => {
           warn!("An attemption of connection has failed to accept!");

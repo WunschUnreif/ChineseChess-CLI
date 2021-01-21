@@ -1,5 +1,5 @@
 [package]
-name = "chess_server"
+name = "chess_datagram"
 version = "0.1.0"
 authors = ["WunschUnreif <wunschunreif@sjtu.edu.cn>"]
 edition = "2018"
@@ -7,11 +7,5 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chess_model = {path = "../chess_model/"}
-chess_datagram = {path = "../chess_datagram/"}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.0"
-log = "0.4.13"
-pretty_env_logger = "0.4"
-toml = "0.5"
-lazy_static = "1.4.0"

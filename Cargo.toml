@@ -3,5 +3,6 @@
 members = [
   "chess_model",
   "chess_client",
-  "chess_server"
+  "chess_server",
+  "chess_datagram",
 ]

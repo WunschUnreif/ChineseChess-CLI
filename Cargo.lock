@@ -35,6 +35,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "chess_datagram"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "chess_model"
 version = "0.1.0"
 dependencies = [
@@ -51,6 +59,7 @@ dependencies = [
 name = "chess_server"
 version = "0.1.0"
 dependencies = [
+ "chess_datagram",
  "chess_model",
  "lazy_static",
  "log",
