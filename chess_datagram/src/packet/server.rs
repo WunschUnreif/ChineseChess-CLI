@@ -26,4 +26,17 @@ impl DataPacketToServer {
     let packet = Self::from_str(line.as_str())?;
     Ok(packet.clone())
   }
+
+  
+  pub fn aloha() -> Self {
+    Self {
+      payload: PayloadToServer::Aloha
+    }
+  }
+
+  pub fn register_user(username: String) -> Self {
+    Self {
+      payload: PayloadToServer::RegisterUser { username }
+    }
+  }
 }

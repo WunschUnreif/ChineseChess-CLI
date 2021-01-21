@@ -27,9 +27,21 @@ impl DataPacketToClient {
     Ok(packet.clone())
   }
 
+  pub fn aloha() -> Self {
+    Self {
+      payload: PayloadToClient::Aloha
+    }
+  }
+
   pub fn error(msg: String) -> Self {
     Self {
       payload: PayloadToClient::Error { msg }
+    }
+  }
+
+  pub fn success() -> Self {
+    Self {
+      payload: PayloadToClient::Success
     }
   }
 }

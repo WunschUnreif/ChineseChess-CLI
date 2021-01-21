@@ -1,12 +1,10 @@
-use std::net::{SocketAddr, TcpListener};
+use std::{net::{SocketAddr, TcpListener}, thread};
 
 #[allow(unused_imports)]
 use log::{info, error, warn};
 
 use crate::config;
-use chess_datagram::*;
 
-mod sender;
 mod handler;
 
 pub fn run_server() -> std::io::Result<()> {
@@ -14,10 +12,11 @@ pub fn run_server() -> std::io::Result<()> {
 
   for connection in listener.incoming() {
     match connection {
-        Ok(mut stream) => {
+        Ok(stream) => {
           info!("Accepted new connection from {:?}.", stream.peer_addr());
-          DataPacketToClient::error(String::from("Testing")).send(&mut stream)?;
-          info!("Written {}", DataPacketToClient::error(String::from("Testing")).to_string().unwrap());
+          thread::spawn(move || {
+            handler::handle_connection(stream, crate::model::SERVER_MODEL.clone())
+          });
         }
         Err(_) => {
           warn!("An attemption of connection has failed to accept!");
