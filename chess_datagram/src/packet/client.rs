@@ -33,6 +33,12 @@ impl DataPacketToClient {
     }
   }
 
+  pub fn alive() -> Self {
+    Self {
+      payload: PayloadToClient::Alive
+    }
+  }
+
   pub fn error(msg: String) -> Self {
     Self {
       payload: PayloadToClient::Error { msg }
@@ -42,6 +48,18 @@ impl DataPacketToClient {
   pub fn success() -> Self {
     Self {
       payload: PayloadToClient::Success
+    }
+  }
+
+  pub fn request_match(from: String, id: usize) -> Self {
+    Self {
+      payload: PayloadToClient::RequestMatch{ from, id }
+    }
+  }
+
+  pub fn start_match(with: String, id: usize, is_red: bool) -> Self {
+    Self {
+      payload: PayloadToClient::StartMatch { with, id, is_red }
     }
   }
 }

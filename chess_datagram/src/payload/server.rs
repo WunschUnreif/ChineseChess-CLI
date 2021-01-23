@@ -6,6 +6,7 @@ pub enum PayloadToServer {
   RegisterUser { username: String },
 
   RequestMatch { with: String },
+  AcceptMatch { id: usize },
   RequestDraw,
   RequestFail,
 

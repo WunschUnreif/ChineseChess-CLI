@@ -4,7 +4,7 @@ use log::{info};
 use chess_datagram::{DataPacketToClient, DataPacket};
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum UserState {
   Alive,
   NoResponse,
@@ -28,6 +28,14 @@ impl User {
       state_update_time: SystemTime::now(),
       stream,
       in_matching: false
+    }
+  }
+
+  pub fn clone(&self) -> User {
+    User {
+      stream: self.stream.try_clone().expect("Cannot clone tcp stream!"),
+      username: self.username.clone(),
+      ..*self
     }
   }
 
@@ -59,7 +67,7 @@ impl User {
   }
 
   fn try_contact(&mut self) {
-    let result = DataPacketToClient::aloha().send(&mut self.stream);
+    let result = DataPacketToClient::alive().send(&mut self.stream);
 
     if result.is_err() {
       self.make_offline();
@@ -72,6 +80,11 @@ impl User {
   }
 }
 
+impl PartialEq for User {
+    fn eq(&self, other: &Self) -> bool {
+        self.username == other.username
+    }
+}
 
 #[derive(Debug)]
 pub struct UserManager {

@@ -39,4 +39,16 @@ impl DataPacketToServer {
       payload: PayloadToServer::RegisterUser { username }
     }
   }
+
+  pub fn request_match(with: String) -> Self {
+    Self {
+      payload: PayloadToServer::RequestMatch{ with }
+    }
+  }
+
+  pub fn accept_match(id: usize) -> Self {
+    Self {
+      payload: PayloadToServer::AcceptMatch { id }
+    }
+  }
 }

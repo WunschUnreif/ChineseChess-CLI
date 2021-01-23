@@ -8,6 +8,7 @@ use chess_datagram::*;
 use crate::model::*;
 
 mod user;
+mod matching;
 
 pub fn handle_connection(stream: TcpStream, model: Arc<Mutex<Model>>) -> Result<(), std::io::Error> {
   let mut handler = Handler::from(stream, model);
@@ -70,6 +71,14 @@ impl Handler {
       
       PayloadToServer::Exit => {
         return Err(());
+      }
+
+      PayloadToServer::RequestMatch {with} => {
+        let _ = self.request_match(with).send(&mut self.stream);
+      }
+
+      PayloadToServer::AcceptMatch {id} => {
+        let _ = self.accept_match(id).send(&mut self.stream);
       }
 
       _ => {
