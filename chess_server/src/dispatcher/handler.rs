@@ -10,36 +10,75 @@ use crate::model::*;
 mod user;
 
 pub fn handle_connection(stream: TcpStream, model: Arc<Mutex<Model>>) -> Result<(), std::io::Error> {
-  let mut echo_stream = stream.try_clone()?;
-  let reader = BufReader::new(stream);
+  let mut handler = Handler::from(stream, model);
+  handler.run()
+}
 
-  for line in reader.lines() {
-    if let Ok(line) = line {
-      let packet = DataPacketToServer::from_str(line.as_str());
-      match packet {
-        Ok(packet) => {
-          handle_packet(packet, &mut echo_stream, model.clone());
-        }
-        Err(_) => {
-          let _ = DataPacketToClient::error(String::from("Cannot resolve Data")).send(&mut echo_stream);
-        }
-      }
+pub struct Handler {
+  pub model: Arc<Mutex<Model>>,
+  pub username: Option<String>,
+  pub stream: TcpStream,
+}
+
+impl Handler {
+  pub fn from(stream: TcpStream, model: Arc<Mutex<Model>>) -> Handler {
+    Handler {
+      model,
+      stream,
+      username: None,
     }
   }
 
-  Ok(())
-}
+  pub fn run(&mut self) -> Result<(), std::io::Error> {
+    let reader = BufReader::new(self.stream.try_clone()?);
 
-fn handle_packet(packet: DataPacketToServer, stream: &mut TcpStream, model: Arc<Mutex<Model>>) {
-  match packet.payload {
-
-    PayloadToServer::Aloha => {
-      let _ = DataPacketToClient::aloha().send(stream);
+    for line in reader.lines() {
+      if let Ok(line) = line {
+        let packet = DataPacketToServer::from_str(line.as_str());
+        
+        match packet {
+          Ok(packet) => {
+            if self.handle_packet(packet).is_err() {
+              break;
+            }
+          }
+          Err(_) => {
+            let _ = DataPacketToClient::error(String::from("Cannot resolve Data")).send(&mut self.stream);
+          }
+        }
+      }
     }
 
-    PayloadToServer::RegisterUser { username } => {
-      let _ = user::user_registry(&username, stream, model.clone()).send(stream);
+    Ok(())
+  }
+
+  pub fn handle_packet(&mut self, packet: DataPacketToServer) -> Result<(), ()> {
+    match packet.payload {
+      PayloadToServer::Aloha => {
+        if self.username.is_some() {
+          let mut model = self.model.lock();
+          let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
+          user.map(|u| u.touch());
+        }
+
+        let _ = DataPacketToClient::aloha().send(&mut self.stream);
+      }
+  
+      PayloadToServer::RegisterUser { username } => {
+        let _ = self.user_registry(&username).send(&mut self.stream);
+      }
+      
+      PayloadToServer::Exit => {
+        return Err(());
+      }
+
+      _ => {
+        let _ = DataPacketToClient
+          ::error("Cannot handle this request in the current state.".into())
+          .send(&mut self.stream);
+      }
     }
 
+    Ok(())
   }
 }

@@ -28,6 +28,7 @@ fn adversary() {
   let _ = DataPacketToServer::aloha().send(&mut stream);
   let _ = DataPacketToServer::register_user(String::from("UserTest")).send(&mut stream);
   let _ = DataPacketToServer::register_user(String::from("UserTest")).send(&mut stream);
+  let _ = DataPacketToServer::aloha().send(&mut stream);
 
 
   let bufreader = BufReader::new(stream.try_clone().unwrap());

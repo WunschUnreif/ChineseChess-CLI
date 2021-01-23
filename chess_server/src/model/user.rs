@@ -1,4 +1,5 @@
 use std::{net::TcpStream, time::{Duration, SystemTime}};
+use log::{info};
 
 use chess_datagram::{DataPacketToClient, DataPacket};
 
@@ -15,7 +16,8 @@ pub struct User {
   pub username: String,
   pub state: UserState,
   pub state_update_time: SystemTime,
-  pub stream: TcpStream
+  pub stream: TcpStream,
+  pub in_matching: bool
 }
 
 impl User {
@@ -24,13 +26,15 @@ impl User {
       username: username.clone(),
       state: UserState::Alive,
       state_update_time: SystemTime::now(),
-      stream
+      stream,
+      in_matching: false
     }
   }
 
   pub fn touch(&mut self) {
     self.state = UserState::Alive;
     self.state_update_time = SystemTime::now();
+    info!("User {} touched.", self.username);
   }
 
   pub fn test(&mut self) {
@@ -81,7 +85,7 @@ impl UserManager {
     }
   }
 
-  pub fn add_user(&mut self, username: &String, stream: TcpStream) -> Result<(), ()> {
+  pub fn add_user(&mut self, username: &String, stream: TcpStream) -> Result<&mut User, ()> {
     self.clean();
     
     if self.find_user_by_name(username).is_some() {
@@ -91,7 +95,8 @@ impl UserManager {
     let new_user = User::new(username, stream);
     self.users.push(new_user);
 
-    Ok(())
+    let last = self.users.len() - 1;
+    Ok(self.users.get_mut(last).unwrap())
   }
 
   pub fn find_user_by_name(&mut self, username: &String) -> Option<&mut User> {
