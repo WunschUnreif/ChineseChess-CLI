@@ -2,7 +2,7 @@ use super::*;
 use console::style;
 
 impl PieceKind {
-  fn get_name(&self, color: &PieceColor) -> char {
+  pub fn get_name(&self, color: &PieceColor) -> char {
     match color {
       PieceColor::RED => match self {
         PieceKind::BING => '兵',
