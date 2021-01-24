@@ -44,6 +44,7 @@ dependencies = [
 name = "chess_datagram"
 version = "0.1.0"
 dependencies = [
+ "chess_model",
  "serde",
  "serde_json",
 ]

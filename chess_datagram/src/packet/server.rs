@@ -3,6 +3,7 @@ use crate::payload::{PayloadToServer};
 use serde::{Serialize, Deserialize};
 use std::net::TcpStream;
 use std::io::{BufRead, BufReader};
+use chess_model::chess_move::ChessMove;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataPacketToServer {
@@ -49,6 +50,36 @@ impl DataPacketToServer {
   pub fn accept_match(id: usize) -> Self {
     Self {
       payload: PayloadToServer::AcceptMatch { id }
+    }
+  }
+
+  pub fn commit_move(id: usize, mov: ChessMove) -> Self {
+    Self {
+      payload: PayloadToServer::Move { id, mov }
+    }
+  }
+
+  pub fn request_draw(id: usize) -> Self {
+    Self {
+      payload: PayloadToServer::RequestDraw { id }
+    }
+  }
+
+  pub fn agree_draw(id: usize, accepted: bool) -> Self {
+    Self {
+      payload: PayloadToServer::AgreeDraw { id, accepted }
+    }
+  }
+
+  pub fn request_fail(id: usize) -> Self {
+    Self {
+      payload: PayloadToServer::RequestFail { id }
+    }
+  }
+
+  pub fn agree_fail(id: usize, accepted: bool) -> Self {
+    Self {
+      payload: PayloadToServer::AgreeFail { id, accepted }
     }
   }
 }

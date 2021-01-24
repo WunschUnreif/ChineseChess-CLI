@@ -1,3 +1,4 @@
+use chess_model::chess_move::ChessMove;
 #[allow(unused_imports)]
 use log::{info, error, warn};
 
@@ -69,4 +70,137 @@ impl Handler {
 
     DataPacketToClient::success()
   }
+
+  pub fn commit_move(&mut self, id: usize, mov: ChessMove) -> DataPacketToClient {
+    let mut model = self.model.lock();
+
+    // Find the user 
+    let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
+    if user.is_none() {
+      return DataPacketToClient::error("You haven't register or your client lost connection before.".into());
+    }
+    let user = user.unwrap().clone();
+
+    // Find the match
+    let matching = model.as_mut().unwrap().match_manager.find_match_by_id(id);
+    if matching.is_none() {
+      return DataPacketToClient::error("Match doesn't exist.".into());
+    }
+    let matching = matching.unwrap();
+
+    // Commit the movement
+    let result = matching.commit(&user, mov);
+    if result.is_ok() {
+      DataPacketToClient::success()
+    } else {
+      DataPacketToClient::error(result.err().unwrap())
+    }
+  }
+
+  pub fn request_draw(&mut self, id:usize) -> DataPacketToClient {
+    let mut model = self.model.lock();
+
+    // Find the user 
+    let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
+    if user.is_none() {
+      return DataPacketToClient::error("You haven't register or your client lost connection before.".into());
+    }
+    let user = user.unwrap().clone();
+
+    // Find the match
+    let matching = model.as_mut().unwrap().match_manager.find_match_by_id(id);
+    if matching.is_none() {
+      return DataPacketToClient::error("Match doesn't exist.".into());
+    }
+    let matching = matching.unwrap();
+
+    // Commit the proposal
+    let result = matching.request_draw(&user);
+    if result.is_ok() {
+      DataPacketToClient::success()
+    } else {
+      DataPacketToClient::error(result.err().unwrap())
+    }
+  }
+
+  pub fn request_fail(&mut self, id:usize) -> DataPacketToClient {
+    let mut model = self.model.lock();
+
+    // Find the user 
+    let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
+    if user.is_none() {
+      return DataPacketToClient::error("You haven't register or your client lost connection before.".into());
+    }
+    let user = user.unwrap().clone();
+
+    // Find the match
+    let matching = model.as_mut().unwrap().match_manager.find_match_by_id(id);
+    if matching.is_none() {
+      return DataPacketToClient::error("Match doesn't exist.".into());
+    }
+    let matching = matching.unwrap();
+
+    // Commit the proposal
+    let result = matching.request_fail(&user);
+    if result.is_ok() {
+      DataPacketToClient::success()
+    } else {
+      DataPacketToClient::error(result.err().unwrap())
+    }
+  }
+
+  pub fn agree_draw(&mut self, id:usize, accepted: bool) -> DataPacketToClient {
+    let mut model = self.model.lock();
+
+    // Find the user 
+    let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
+    if user.is_none() {
+      return DataPacketToClient::error("You haven't register or your client lost connection before.".into());
+    }
+    let user = user.unwrap().clone();
+
+    // Find the match
+    let matching = model.as_mut().unwrap().match_manager.find_match_by_id(id);
+    if matching.is_none() {
+      return DataPacketToClient::error("Match doesn't exist.".into());
+    }
+    let matching = matching.unwrap();
+
+    // Commit the agreement
+    let result = matching.accept_draw(&user, accepted);
+    if result.is_ok() {
+      DataPacketToClient::success()
+    } else {
+      DataPacketToClient::error(result.err().unwrap())
+    }
+  }
+
+  pub fn agree_fail(&mut self, id:usize, accepted: bool) -> DataPacketToClient {
+    let mut model = self.model.lock();
+
+    // Find the user 
+    let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
+    if user.is_none() {
+      return DataPacketToClient::error("You haven't register or your client lost connection before.".into());
+    }
+    let user = user.unwrap().clone();
+
+    // Find the match
+    let matching = model.as_mut().unwrap().match_manager.find_match_by_id(id);
+    if matching.is_none() {
+      return DataPacketToClient::error("Match doesn't exist.".into());
+    }
+    let matching = matching.unwrap();
+
+    // Commit the agreement
+    let result = matching.accept_fail(&user, accepted);
+    if result.is_ok() {
+      DataPacketToClient::success()
+    } else {
+      DataPacketToClient::error(result.err().unwrap())
+    }
+  }
+  
 }
+
+

@@ -8,6 +8,16 @@ pub enum PieceColor {
   BLACK
 }
 
+impl PieceColor {
+  /// Get the opponent's color 
+  pub fn opponent(&self) -> PieceColor {
+    match *self {
+      PieceColor::RED => PieceColor::BLACK,
+      PieceColor::BLACK => PieceColor::RED
+    }
+  }
+}
+
 /// State of chess pieces
 #[derive(Debug, EnumIter, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub enum PieceState {

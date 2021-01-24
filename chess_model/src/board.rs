@@ -7,7 +7,7 @@ use console::Term;
 use std::io::Write;
 use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChessBoard {
   // 9 columns, each is a col with 10 rows,
   // columns start from right, rows start from bottom, red facing lower rows

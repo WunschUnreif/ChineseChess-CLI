@@ -81,11 +81,31 @@ impl Handler {
         let _ = self.accept_match(id).send(&mut self.stream);
       }
 
-      _ => {
-        let _ = DataPacketToClient
-          ::error("Cannot handle this request in the current state.".into())
-          .send(&mut self.stream);
+      PayloadToServer::Move {id, mov} => {
+        let _ = self.commit_move(id, mov).send(&mut self.stream);
       }
+
+      PayloadToServer::RequestDraw { id } => {
+        let _ = self.request_draw(id).send(&mut self.stream);
+      }
+
+      PayloadToServer::AgreeDraw { id, accepted } => {
+        let _ = self.agree_draw(id, accepted).send(&mut self.stream);
+      }
+
+      PayloadToServer::RequestFail { id } => {
+        let _ = self.request_fail(id).send(&mut self.stream);
+      }
+
+      PayloadToServer::AgreeFail { id, accepted } => {
+        let _ = self.agree_fail(id, accepted).send(&mut self.stream);
+      }
+
+      // _ => {
+      //   let _ = DataPacketToClient
+      //     ::error("Cannot handle this request in the current state.".into())
+      //     .send(&mut self.stream);
+      // }
     }
 
     Ok(())

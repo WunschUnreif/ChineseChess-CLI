@@ -16,8 +16,6 @@ pub fn can_move(board: &ChessBoard, movement: &ChessMove, from: BoardPosition) -
     panic!("Position and movement mismatched!");
   }
 
-  println!("{:?}", movement);
-
   match movement.kind {
     PieceKind::BING  => can_move_bing(board, movement, from),
     PieceKind::PAO   => can_move_pao(board, movement, from),
