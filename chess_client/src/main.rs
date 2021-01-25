@@ -6,17 +6,32 @@ mod display;
 mod server_comm;
 mod data_model;
 
-use std::{thread::sleep, time::Duration};
+use std::{sync::{Arc, Mutex}, thread::sleep, time::Duration};
 
+use chess_datagram::{DataPacketToServer, DataPacket};
+use data_model::DataModel;
 use display::View;
 
 fn main() -> Result<(), std::io::Error> {
-    
-    let mut v = View::new()?;
-    v.run();
+  let dm = Arc::new(Mutex::new(DataModel::new()));
+  let mut v = View::new()?;
+  let mut comm = server_comm::connect_to_server()?;
+  let run = v.running.clone();
 
-    sleep(Duration::from_millis(10000));
+  v.run(dm.clone(), comm.try_clone()?);
+  let listener = server_comm::spawn_listener(comm.try_clone()?, dm.clone(), v.vm.clone(), run.clone());
 
-    v.stop();
-    Ok(())
+  loop {
+    if *run.lock().unwrap() == false { break; }
+    sleep(Duration::from_millis(500));
+  }
+
+  v.stop();
+
+  comm = server_comm::connect_to_server()?;
+  let _ = DataPacketToServer::aloha().send(&mut comm);
+  let _ = DataPacketToServer::exit().send(&mut comm);
+  let _ = listener.join();
+
+  Ok(())
 }

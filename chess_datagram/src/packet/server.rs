@@ -35,6 +35,12 @@ impl DataPacketToServer {
     }
   }
 
+  pub fn exit() -> Self {
+    Self {
+      payload: PayloadToServer::Exit
+    }
+  }
+
   pub fn register_user(username: String) -> Self {
     Self {
       payload: PayloadToServer::RegisterUser { username }

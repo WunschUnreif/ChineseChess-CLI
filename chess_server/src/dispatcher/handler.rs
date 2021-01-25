@@ -54,14 +54,16 @@ impl Handler {
   }
 
   pub fn handle_packet(&mut self, packet: DataPacketToServer) -> Result<(), ()> {
+    info!("Reveived packet from {:?} of payload {:?}", self.stream.peer_addr(), packet);
+
+    if self.username.is_some() {
+      let mut model = self.model.lock();
+      let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
+      user.map(|u| u.touch());
+    }
+
     match packet.payload {
       PayloadToServer::Aloha => {
-        if self.username.is_some() {
-          let mut model = self.model.lock();
-          let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
-          user.map(|u| u.touch());
-        }
-
         let _ = DataPacketToClient::aloha().send(&mut self.stream);
       }
   
@@ -70,6 +72,12 @@ impl Handler {
       }
       
       PayloadToServer::Exit => {
+        if self.username.is_some() {
+          let mut model = self.model.lock();
+          let user = model.as_mut().unwrap().user_manager.find_user_by_name(&self.username.clone().unwrap());
+          user.map(|u| u.state = UserState::OffLine);
+        }
+        let _ = DataPacketToClient::aloha().send(&mut self.stream);
         return Err(());
       }
 

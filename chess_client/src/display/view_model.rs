@@ -10,7 +10,7 @@ use super::match_board_widget::MatchBoard;
 
 pub struct ViewModel {
   terminal: RefCell<Terminal<TermionBackend<RawTerminal<Stdout>>>>,
-  pub data_model: DataModel,
+  data_model: DataModel,
   command: String,
 }
 
@@ -37,6 +37,10 @@ impl ViewModel {
   pub fn update_command(&mut self, command: String) {
     self.command = command;
     self.render()
+  }
+
+  pub fn clear(&mut self) {
+    let _ = self.terminal.borrow_mut().clear();
   }
 
   pub fn render(&mut self) {
@@ -155,7 +159,9 @@ impl ViewModel {
       let mut par = Paragraph::new(Span::raw(""));
       if self.data_model.explicit_success {
         par = Paragraph::new(Span::raw("  ✅  Success!"))
-      } else if let Some(error) = self.data_model.error_message.clone() {
+      } else if let Ok(msg) = self.data_model.error_message.clone() {
+        par = Paragraph::new(Span::raw(format!("  ℹ️  {}", msg)))
+      } else if let Err(error) = self.data_model.error_message.clone() {
         par = Paragraph::new(Span::raw(format!("  ❌  {}", error)))
       }
 

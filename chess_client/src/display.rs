@@ -1,17 +1,19 @@
-use std::{sync::{Arc, Mutex, mpsc::channel}, thread::{self, JoinHandle}, time::Duration};
+use std::{net::TcpStream, sync::{Arc, Mutex, mpsc::channel}, thread::{self, JoinHandle}, time::Duration};
 
 use thread::sleep;
 use view_model::ViewModel;
 
+use crate::data_model::DataModel;
 
 
 pub mod board_widget;
 pub mod match_board_widget;
 pub mod view_model;
+pub mod command_exec;
 
 pub struct View {
-  vm: Arc<Mutex<ViewModel>>,
-  running: Arc<Mutex<bool>>,
+  pub vm: Arc<Mutex<ViewModel>>,
+  pub running: Arc<Mutex<bool>>,
   threads: Vec<JoinHandle<()>>,
 }
 
@@ -24,7 +26,7 @@ impl View {
     })
   }
 
-  pub fn run(&mut self) {
+  pub fn run(&mut self, dm: Arc<Mutex<DataModel>>, mut connection: TcpStream) {
     // Set the flag 
     *self.running.lock().unwrap() = true;
 
@@ -85,8 +87,7 @@ impl View {
             break;
           }
           
-          let mut vm = vm_clone.lock().unwrap();
-          vm.data_model.error_message = Some("Aha".into());
+          command_exec::exec_command(x, vm_clone.clone(), dm.clone(), &mut connection, run_clone.clone());
         }
       }
     });
@@ -94,6 +95,7 @@ impl View {
   }
 
   pub fn stop(&mut self) {
+    self.vm.lock().unwrap().clear();
     println!("Please press a key to stop the program.");
 
     *(self.running.lock().unwrap()) = false;
