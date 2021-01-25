@@ -20,14 +20,14 @@ impl DataModel {
     DataModel {
       connection_good: false,
       error_message: None,
-      explicit_success: true,
+      explicit_success: false,
 
-      matching: true,
+      matching: false,
       board: ChessBoard::init(),
       is_red: true,
       in_turn: true,
-      this_name: Some("aaa".into()),
-      that_name: Some("bbb".into()),
+      this_name: None,
+      that_name: None,
     }
   }
 }

@@ -1,6 +1,8 @@
-use std::{cell::RefCell, io::Stdout};
+use std::{cell::RefCell, io::Stdout, sync::mpsc::Sender};
+use std::sync::{Arc, Mutex};
 
-use termion::raw::{RawTerminal, IntoRawMode};
+use termion::{input::TermRead, raw::{RawTerminal, IntoRawMode}};
+use termion::event::{Event};
 use tui::{Terminal, backend::TermionBackend, layout::{Margin, Rect}, style::{Color, Modifier, Style}, text::{Span, Spans, Text}, widgets::{Block, BorderType, Borders, Paragraph}};
 use crate::{config, data_model::DataModel};
 
@@ -8,7 +10,7 @@ use super::match_board_widget::MatchBoard;
 
 pub struct ViewModel {
   terminal: RefCell<Terminal<TermionBackend<RawTerminal<Stdout>>>>,
-  data_model: DataModel,
+  pub data_model: DataModel,
   command: String,
 }
 
@@ -23,19 +25,37 @@ impl ViewModel {
     Ok(ViewModel {
       terminal: RefCell::new(terminal),
       data_model: DataModel::new(),
-      command: String::from("register WunschUnreif"),
+      command: String::new(),
     })
   }
 
-  pub fn update_with(&mut self, data_model: DataModel) {
+  pub fn update_data(&mut self, data_model: DataModel) {
     self.data_model = data_model;
+    self.render()
+  }
+
+  pub fn update_command(&mut self, command: String) {
+    self.command = command;
+    self.render()
   }
 
   pub fn render(&mut self) {
-    let _ = self.terminal.borrow_mut().clear();
-
     let _ = self.terminal.borrow_mut().draw(|frame| {
       let frame_size = frame.size();
+
+      // Check the screen size : Require: 70 width * 38 height
+      if frame_size.width < 70 || frame_size.height < 38 {
+        // Draw the background
+        let block = Block::default().style(Style::default().bg(Color::Rgb(0xf4, 0x51, 0x1e)));
+        frame.render_widget(block, frame_size);
+
+        // Draw the warnning
+        let par = Paragraph::new(Text::raw(
+          "Screen too small.\nAt least 70 * 38 is required!"
+        ));
+        frame.render_widget(par, frame_size);
+        return;
+      }
 
       // Draw the background
       let block = Block::default().style(Style::default().bg(Color::Rgb(0x45, 0x5a, 0x64)));
@@ -111,10 +131,12 @@ impl ViewModel {
           .title("COMMAND");
       frame.render_widget(block.clone(), command_area);
 
-      let par = Paragraph::new(Spans::from(vec![
-        Span::styled("   〉 ", Style::default().add_modifier(Modifier::BOLD)),
-        Span::styled(self.command.clone(), Style::default().add_modifier(Modifier::BOLD))
-      ]));
+      let par = {
+        Paragraph::new(Spans::from(vec![
+          Span::styled("   〉 ", Style::default().add_modifier(Modifier::BOLD)),
+          Span::styled(self.command.clone(), Style::default().add_modifier(Modifier::BOLD))
+        ]))
+      };
       frame.render_widget(par, block.inner(command_area).inner(&Margin { horizontal: 0, vertical: 1 }));
       
       // Draw the message box 
@@ -141,5 +163,50 @@ impl ViewModel {
 
       // Finish
     });
+  }
+}
+
+pub fn handle_events(comm_chan: Sender<String>, update_chan: Sender<String>, run: Arc<Mutex<bool>>) {
+  let stdin = std::io::stdin();
+  let mut command = String::new();
+  for e in stdin.events() {
+    if let Ok(Event::Key(e)) = e {
+      if *run.lock().unwrap() == false {
+        let _ = update_chan.send("$exit".into());
+        let _ = comm_chan.send("$exit".into());
+        break;
+      }
+
+      match e {
+        termion::event::Key::Backspace
+        | termion::event::Key::Delete => {
+          let len = command.len();
+          if len > 0 {
+            command = String::from(&command[0..(len - 1)]);
+            let _ = update_chan.send(command.clone());
+          }
+        }
+        
+        termion::event::Key::Char(c) => {
+          if c == '\n' || c == '\r' {
+            if command.len() > 0 {
+              let _ = comm_chan.send(command.clone());
+              command = String::new();
+              let _ = update_chan.send(command.clone());
+            }
+            continue;
+          }
+
+          command = format!("{}{}", command, c);
+          let _ = update_chan.send(command.clone());
+        }
+
+        termion::event::Key::Ctrl('c') => {
+          let _ = comm_chan.send("exit".into());
+        }
+
+        _ => {}
+      }
+    }
   }
 }
