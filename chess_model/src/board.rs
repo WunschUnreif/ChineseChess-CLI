@@ -63,7 +63,7 @@ impl ChessBoard {
   /// Test whether there is a piece at the given position
   pub fn has_piece_at(&self, pos: board_position::BoardPosition) -> bool {
     self.configuration[(pos.col - 1) as usize][(pos.row - 1) as usize].is_some()
-    && self.configuration[(pos.col - 1) as usize][(pos.row - 1) as usize].unwrap().state == piece::PieceState::Active
+    && self.configuration[(pos.col - 1) as usize][(pos.row - 1) as usize].unwrap().state != piece::PieceState::JustMoved
   }
 
   pub fn get_piece_at(&self, pos: board_position::BoardPosition) -> Option<piece::Piece> {
